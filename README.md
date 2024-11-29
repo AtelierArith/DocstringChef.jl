@@ -52,7 +52,7 @@ $ julia --project -e 'using Pkg; Pkg.instantiate()'
 
 ## Usage
 
-### The `@code` macro
+### `@code` macro
 
 We provide `@code` macro. It works like `@less` except `@code` extracts only a function definition. Below shows several examples:
 
@@ -102,7 +102,7 @@ function sin(x::T) where T<:Union{Float32, Float64}
 end
 ```
 
-### `@explain`
+### `@explain` macro
 
 The `@doc <expr>` macro defined in the Base packages shows docstring for a given `<expr>`. Not all source codes provide docstrings.
 

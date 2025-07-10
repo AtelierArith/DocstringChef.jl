@@ -1,11 +1,17 @@
 module DocstringChef
 
 using Markdown
+using JLFzf: inter_fzf
 using InteractiveUtils: gen_call_with_extracted_types
 using OpenAI: create_chat
 
 export @code
 export @explain
+
+function postprocess_content(content::AbstractString)
+    # Replace each match with the text wrapped in a math code block
+    return replace(content, r"\$\$(.*?)\$\$"s => s"```math\1```")
+end
 
 _promptfn(code) = """
 Generate JuliaLang docstring for the following Julia function:
@@ -84,11 +90,29 @@ julia> explain(sin, (Float64,))
 ```
 
 """
-function explain(args...)
-    file, linenum = functionloc(args...)
-    lines = readlines(file)[linenum:end]
-    code = extractcode(lines)
-    prompt = _promptfn(code)
+function explain(io::IO, args...)
+    ms = methods(args...)
+    lines = if length(ms) >= 2
+        x = inter_fzf(ms, "--read0")
+        if isempty(x)
+            error("could not determine location of method definition")
+        end
+
+        file_line = last(split(x))
+        file, ln_str = split(file_line, ":")
+        ln = Base.parse(Int, ln_str)
+        ln > 0 || error("could not determine location of method definition")
+        file, ln = (Base.find_source_file(expanduser(string(file))), ln)
+        lines = readlines(file)[ln:end]
+        lines
+    else
+        code(args...)
+    end
+    
+    c = extractcode(lines)
+    @info "Explaining the following code..." code=Markdown.parse("```julia\n" * c * "\n```")
+
+    prompt = _promptfn(c)
     model = "gpt-4o-mini"
     r = create_chat(
         ENV["OPENAI_API_KEY"],
@@ -104,7 +128,16 @@ function explain(args...)
         pop!(doclines)
     end
     doc = join(doclines, "\n")
+    doc = postprocess_content(doc)
     Markdown.parse(doc)
+end
+
+explain(args...) = (@nospecialize; explain(stdout, args...))
+
+function explain(@nospecialize(f),
+    mod::Union{Module,AbstractArray{Module},Nothing}=nothing)
+    # return all matches
+    return explain(f, Tuple{Vararg{Any}}, mod)
 end
 
 """
@@ -112,8 +145,8 @@ end
 
 It calls out `explain` function.
 """
-macro explain(ex0)
-    return gen_call_with_extracted_types(__module__, :explain, ex0)
+macro explain(fn)
+    :(explain($(esc(fn))))
 end
 
 end # module DocstringChef

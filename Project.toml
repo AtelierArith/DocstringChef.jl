@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+JLFzf = "1019f520-868f-41f5-a6de-eb00f4b6a39c"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 OpenAI = "e9f21f70-7185-4079-aca2-91159181367c"
 
@@ -12,6 +13,7 @@ OpenAI = "e9f21f70-7185-4079-aca2-91159181367c"
 Aqua = "0.8.9"
 InteractiveUtils = "1.11.0"
 JET = "0.9.12"
+JLFzf = "0.1.11"
 Markdown = "1.11.0"
 OpenAI = "0.10.1"
 Test = "1.11.0"

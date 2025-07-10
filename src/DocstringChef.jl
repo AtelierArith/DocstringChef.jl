@@ -22,7 +22,7 @@ $(code)
 
 Always show the signature of a function at the top of the documentation, with a four-space indent so that it is printed as Julia code.
 
-Just return the output as string. 
+Just return the output as string.
 Do not add codefence.
 """
 
@@ -48,21 +48,24 @@ function extractcode(lines::Vector{String})
     join(lines[begin:r], "\n")
 end
 
+function extractlines_from_functionloc(args...)
+    file, linenum = functionloc(args...)
+    lines = readlines(file)[linenum:end]
+end
+
 """
 	code(Function, types)
 
 Print the definition of a function
 """
 function code(args...)
-    file, linenum = functionloc(args...)
-    lines = readlines(file)[linenum:end]
-    println(extractcode(lines))
+    extractlines_from_functionloc(args...) |> extractcode |> println
 end
 
 """
 	@code(ex0)
 
-Applied to a function or macro call, it evaluates the arguments to the specified call, and returns code giving the location for the method that would be called for those arguments. 
+Applied to a function or macro call, it evaluates the arguments to the specified call, and returns code giving the location for the method that would be called for those arguments.
 It calls out to the functionloc function.
 """
 macro code(ex0)
@@ -106,9 +109,9 @@ function explain(io::IO, args...)
         lines = readlines(file)[ln:end]
         lines
     else
-        code(args...)
+        extractlines_from_functionloc(args...)
     end
-    
+
     c = extractcode(lines)
     @info "Explaining the following code..." code=Markdown.parse("```julia\n" * c * "\n```")
 
@@ -145,8 +148,13 @@ end
 
 It calls out `explain` function.
 """
-macro explain(fn)
+macro explain(fn::Symbol)
     :(explain($(esc(fn))))
 end
+
+macro explain(ex0::Expr)
+    gen_call_with_extracted_types(__module__, :explain, ex0)
+end
+
 
 end # module DocstringChef

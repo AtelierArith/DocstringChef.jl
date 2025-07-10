@@ -109,7 +109,8 @@ function explain(io::IO, args...)
         lines = readlines(file)[ln:end]
         lines
     else
-        extractlines_from_functionloc(args...)
+        m = first(ms)
+        lines = readlines(Base.find_source_file(expanduser(string(m.file))))[m.line:end]
     end
 
     c = extractcode(lines)

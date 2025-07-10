@@ -5,7 +5,6 @@ using JLFzf: inter_fzf
 using InteractiveUtils: gen_call_with_extracted_types
 using OpenAI: create_chat
 
-export @code
 export @explain
 
 function postprocess_content(content::AbstractString)
@@ -51,25 +50,6 @@ end
 function extractlines_from_functionloc(args...)
     file, linenum = functionloc(args...)
     lines = readlines(file)[linenum:end]
-end
-
-"""
-	code(Function, types)
-
-Print the definition of a function
-"""
-function code(args...)
-    extractlines_from_functionloc(args...) |> extractcode |> println
-end
-
-"""
-	@code(ex0)
-
-Applied to a function or macro call, it evaluates the arguments to the specified call, and returns code giving the location for the method that would be called for those arguments.
-It calls out to the functionloc function.
-"""
-macro code(ex0)
-    ex = gen_call_with_extracted_types(__module__, :code, ex0)
 end
 
 """
@@ -145,7 +125,7 @@ function explain(@nospecialize(f),
 end
 
 """
-    explain ex0
+    explain ex0 [mod]
 
 It calls out `explain` function.
 """

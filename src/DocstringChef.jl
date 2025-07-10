@@ -3,9 +3,11 @@ module DocstringChef
 using Markdown
 using JLFzf: inter_fzf
 using InteractiveUtils: gen_call_with_extracted_types
+const DEFAULT_LANG = Ref{String}("English")
 using OpenAI: create_chat
 
 export @explain
+export @switchlang!
 
 function postprocess_content(content::AbstractString)
     # Replace each match with the text wrapped in a math code block
@@ -13,7 +15,7 @@ function postprocess_content(content::AbstractString)
 end
 
 _promptfn(code) = """
-Generate JuliaLang docstring for the following Julia function:
+Generate JuliaLang docstring for the following Julia function in $(DEFAULT_LANG[]):
 
 ```julia
 $(code)
@@ -141,5 +143,12 @@ macro explain(ex0::Expr)
     gen_call_with_extracted_types(__module__, :explain, ex0)
 end
 
+function _switchlang!(lang)
+    DEFAULT_LANG[] = String(lang)
+end
+
+macro switchlang!(lang)
+    :(_switchlang!($(esc(lang))))
+end
 
 end # module DocstringChef

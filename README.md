@@ -52,56 +52,6 @@ $ julia --project -e 'using Pkg; Pkg.instantiate()'
 
 ## Usage
 
-### `@code` macro
-
-We provide `@code` macro. It works like `@less` except `@code` extracts only a function definition. Below shows several examples:
-
-```julia
-$ julia --project
-julia> using DocstringChef
-
-julia> @code 1+1
-(+)(x::T, y::T) where {T<:BitInteger} = add_int(x, y)
-
-julia> @code @macroexpand @show x
-macro macroexpand(code)
-    return :(macroexpand($__module__, $(QuoteNode(code)), recursive=true))
-end
-
-julia> @code sin(1)
-    @eval function ($f)(x::Real)
-        xf = float(x)
-        x === xf && throw(MethodError($f, (x,)))
-        return ($f)(xf)
-    end
-
-julia> @code sin(1.0)
-function sin(x::T) where T<:Union{Float32, Float64}
-    absx = abs(x)
-    if absx < T(pi)/4 #|x| ~<= pi/4, no need for reduction
-        if absx < sqrt(eps(T))
-            return x
-        end
-        return sin_kernel(x)
-    elseif isnan(x)
-        return x
-    elseif isinf(x)
-        sin_domain_error(x)
-    end
-    n, y = rem_pio2_kernel(x)
-    n = n&3
-    if n == 0
-        return sin_kernel(y)
-    elseif n == 1
-        return cos_kernel(y)
-    elseif n == 2
-        return -sin_kernel(y)
-    else
-        return -cos_kernel(y)
-    end
-end
-```
-
 ### `@explain` macro
 
 The `@doc <expr>` macro defined in the Base packages shows docstring for a given `<expr>`. Not all source codes provide docstrings.

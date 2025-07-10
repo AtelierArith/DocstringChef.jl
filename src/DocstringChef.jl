@@ -152,6 +152,10 @@ macro explain(fn::Symbol)
     :(explain($(esc(fn))))
 end
 
+macro explain(fn::Symbol, mod)
+    :(explain($(esc(fn)), $(esc(mod))))
+end
+
 macro explain(ex0::Expr)
     gen_call_with_extracted_types(__module__, :explain, ex0)
 end

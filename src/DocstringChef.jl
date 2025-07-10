@@ -96,7 +96,7 @@ function explain(io::IO, args...)
     end
 
     c = extractcode(lines)
-    @info "Explaining the following code..." code=Markdown.parse("```julia\n" * c * "\n```")
+    @info "Decoding the following code..." code=Markdown.parse("```julia\n" * c * "\n```")
 
     prompt = _promptfn(c)
     model = "gpt-4o-mini"

@@ -85,9 +85,11 @@ function explain(args...)
         file, ln = (Base.find_source_file(expanduser(string(file))), ln)
         lines = readlines(file)[ln:end]
         lines
-    else
-        m = first(ms)
+    elseif length(ms) == 1
+        m = only(ms)
         lines = readlines(Base.find_source_file(expanduser(string(m.file))))[m.line:end]
+    else
+        error("could not determine location of method definition")
     end
 
     c = extractcode(lines)

@@ -49,11 +49,6 @@ function extractcode(lines::Vector{String})
     join(lines[begin:r], "\n")
 end
 
-function extractlines_from_functionloc(args...)
-    file, linenum = functionloc(args...)
-    lines = readlines(file)[linenum:end]
-end
-
 """
     explain(args...)
 
@@ -75,8 +70,8 @@ julia> explain(sin, (Float64,))
 ```
 
 """
-function explain(io::IO, args...)
-    ms = methods(args...)
+function explain(args...)
+ ms = methods(args...)
     lines = if length(ms) >= 2
         x = inter_fzf(ms, "--read0")
         if isempty(x)
@@ -90,9 +85,11 @@ function explain(io::IO, args...)
         file, ln = (Base.find_source_file(expanduser(string(file))), ln)
         lines = readlines(file)[ln:end]
         lines
-    else
-        m = first(ms)
+    elseif length(ms) == 1
+        m = only(ms)
         lines = readlines(Base.find_source_file(expanduser(string(m.file))))[m.line:end]
+    else
+        error("could not determine location of method definition")
     end
 
     c = extractcode(lines)
@@ -117,8 +114,6 @@ function explain(io::IO, args...)
     doc = postprocess_content(doc)
     Markdown.parse(doc)
 end
-
-explain(args...) = (@nospecialize; explain(stdout, args...))
 
 function explain(@nospecialize(f),
     mod::Union{Module,AbstractArray{Module},Nothing}=nothing)
